@@ -67,6 +67,13 @@ nano config.env                       # set BILLING_ACCOUNT (rename ORG_SLUG if 
 chmod +x *.sh
 
 ./setup.sh        # create the vulnerable project (~2 min)
+
+# IMPORTANT: wait ~60 seconds after setup.sh before the next step.
+# setup.sh grants the IAM bindings exploit.sh relies on, and those take up to a
+# minute to propagate. Running exploit.sh immediately fails with
+# "PERMISSION_DENIED ... iam.serviceAccounts.getAccessToken" - that is not a bug,
+# just IAM propagation. Wait and run it again.
+
 ./exploit.sh      # Act 1: non-owner -> Owner            (screenshots 1-3)
 ./remediate.sh    # apply a realistic PARTIAL fix
 ./residual.sh     # Act 2: token-creator -> editor -> data  (screenshots 4-5)
