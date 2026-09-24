@@ -52,6 +52,8 @@ The core primitive is documented by Google itself: `projectIamAdmin` carries
 - `bash`, `python3`, `curl`, `openssl`
 - An account **not** under a restrictive organization (org policies can block the role grants - a personal account is simplest; check with `gcloud organizations list`)
 
+> **Easiest path: [Cloud Shell](https://cloud.google.com/shell).** Open it from the Cloud Console (the `>_` icon) and you get `gcloud`, `python3`, `curl` and `openssl` pre-installed and already authenticated - no local install or `gcloud auth login` needed. Just clone the repo there and run the scripts.
+
 ---
 
 ## Quickstart
