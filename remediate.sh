@@ -28,7 +28,7 @@ cat <<EOF
 [+] Partial fix applied - the owner path is closed.
 
     BUT (this is the whole point of the article): the low-priv principal still
-    holds project-level roles/iam.serviceAccountTokenCreator, and ${RUNTIME_SA}@
+    holds roles/iam.serviceAccountTokenCreator on ${RUNTIME_SA}@, and ${RUNTIME_SA}@
     still holds roles/editor. That combination is enough to reach full data
     access without ever being Owner.
 
