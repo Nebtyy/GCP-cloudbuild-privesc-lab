@@ -87,12 +87,16 @@ gcloud iam service-accounts add-iam-policy-binding "${DEPLOYER}" \
   --member="serviceAccount:${LOWPRIV}" --role="roles/iam.serviceAccountUser" -q >/dev/null
 
 # ---------------------------------------------------------------------------
-# 5. RESIDUAL path (the retest angle): low-priv keeps project-level
-#    serviceAccountTokenCreator, and an 'editor' SA remains impersonatable.
+# 5. RESIDUAL path (the retest angle): low-priv can impersonate the app-runtime
+#    SA, and that SA holds editor. The tokenCreator grant is SCOPED to
+#    app-runtime only (resource-level), NOT project-wide - otherwise low-priv
+#    could impersonate the deployer SA directly and skip Cloud Build entirely.
+#    Scoping it keeps Act 1 (owner via build) and Act 2 (data via app-runtime)
+#    two distinct paths.
 # ---------------------------------------------------------------------------
 echo "[*] Wiring the residual (post-fix) path..."
-gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
-  --member="serviceAccount:${LOWPRIV}" --role="roles/iam.serviceAccountTokenCreator" --condition=None -q >/dev/null
+gcloud iam service-accounts add-iam-policy-binding "${RUNTIME}" \
+  --member="serviceAccount:${LOWPRIV}" --role="roles/iam.serviceAccountTokenCreator" -q >/dev/null
 gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --member="serviceAccount:${RUNTIME}" --role="roles/editor" --condition=None -q >/dev/null
 
