@@ -3,7 +3,7 @@
 # residual.sh - Act 2 (the retest angle): after the "fix", the token-creator
 # grant still lets the low-priv principal impersonate an editor SA and read data.
 #
-#   you --(impersonate)--> low-priv --(project-level tokenCreator)--> app-runtime (editor) --> read secret
+#   you --(impersonate)--> low-priv --(tokenCreator on app-runtime)--> app-runtime (editor) --> read secret
 #
 set -euo pipefail
 cd "$(dirname "$0")"
