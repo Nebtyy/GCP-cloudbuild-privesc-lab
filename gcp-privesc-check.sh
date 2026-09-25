@@ -31,10 +31,10 @@ PNUM="$(gcloud projects describe "${PID}" --format='value(projectNumber)' 2>/dev
 # ---------------------------------------------------------------------------
 # IAM policy analysis
 # ---------------------------------------------------------------------------
-printf '%s' "${POLICY_JSON}" | PID="${PID}" PNUM="${PNUM}" python3 - <<'PY'
-import os, json, sys
+PID="${PID}" PNUM="${PNUM}" POLICY_JSON="${POLICY_JSON}" python3 - <<'PY'
+import os, json
 
-policy = json.load(sys.stdin)
+policy = json.loads(os.environ["POLICY_JSON"])
 pid  = os.environ.get("PID", "")
 pnum = os.environ.get("PNUM", "")
 
