@@ -117,19 +117,41 @@ while IFS= read -r sa; do
 done < <(gcloud iam service-accounts list --project="${PID}" --format='value(email)' 2>/dev/null || true)
 [[ "${found}" -eq 0 ]] && echo "    [+] none found (or no permission to list keys)"
 
+# ---------------------------------------------------------------------------
+# Resource-level impersonation grants on each SA - read-only
+# (these do NOT appear in the project policy above, so they are easy to miss)
+# ---------------------------------------------------------------------------
+echo
+echo "[*] Per-SA impersonation grants (serviceAccountUser / serviceAccountTokenCreator):"
+found=0
+while IFS= read -r sa; do
+  [[ -z "${sa}" ]] && continue
+  binds="$(gcloud iam service-accounts get-iam-policy "${sa}" --project="${PID}" \
+             --flatten="bindings[].members" \
+             --format='value(bindings.role, bindings.members)' 2>/dev/null \
+           | grep -E 'serviceAccountTokenCreator|serviceAccountUser' || true)"
+  if [[ -n "${binds}" ]]; then
+    echo "    [!] on ${sa}"
+    while IFS= read -r line; do echo "          ${line}"; done <<< "${binds}"
+    found=1
+  fi
+done < <(gcloud iam service-accounts list --project="${PID}" --format='value(email)' 2>/dev/null || true)
+[[ "${found}" -eq 0 ]] && echo "    [+] none found (or no permission to read SA policies)"
+
 cat <<'EOF'
 
 ------------------------------------------------------------
 How to read this:
-  [!] WARN  a path worth closing (owner-equivalent role, project-level
-            impersonation, default over-privilege, missing audit logs,
-            or an exportable key).
+  [!] WARN  a path worth closing (owner-equivalent role, project-level or
+            per-SA impersonation, default over-privilege, missing audit
+            logs, or an exportable key).
   [*] INFO  context to review by hand.
   [+] OK    nothing flagged for that check.
 
 "All closed" looks like: no service-account owners, no projectIamAdmin,
-no project-level serviceAccountTokenCreator / serviceAccountUser, the
-default compute SA without editor, no exportable keys, and auditConfigs present.
+no project-level or per-SA serviceAccountTokenCreator / serviceAccountUser
+that is not strictly needed, the default compute SA without editor, no
+exportable keys, and auditConfigs present.
 
 This script only reads. It never changes IAM.
 EOF
